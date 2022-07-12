@@ -28,7 +28,7 @@ export default function Galery({ navigation }) {
         fetching()
         // count()
     }, [])
-    console.log(display)
+    console.log('galery')
     return (
         <ScrollView style={{ flex: 1 }}>
             <Text style={style.title}>Gallery</Text>

@@ -1,22 +1,14 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
+import * as SecureStore from 'expo-secure-store';
 import { Dimensions, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useFonts, AlexBrush_400Regular } from '@expo-google-fonts/alex-brush'
 import axios from 'axios'
-import Storage from 'react-native-storage';
-import { AsyncStorage } from 'react-native'
-const storage = new Storage({
-    size: 1000,
-    defaultExpires: 1000 * 3600 * 24,
-    enableCache: true,
-    storageBackend: AsyncStorage
-})
-
+import { AuthContext } from '../context/authContezt';
 let go = 'https://img2.pngdownload.id/20180610/jeu/kisspng-google-logo-google-search-google-now-5b1dacc1ad0462.3234288415286714257087.jpg'
 let url = 'http://192.168.100.13:8000/auth/login'
 
-
-
 export default function Login({ navigation }) {
+    const { setAuth } = useContext(AuthContext)
     const ScreenHeight = Dimensions.get("window").height;
     const [fontsLoaded] = useFonts({ AlexBrush_400Regular });
     const [data, setData] = useState({ email: '', password: '' })
@@ -28,17 +20,14 @@ export default function Login({ navigation }) {
         setLoadig(true)
         try {
             const res = await axios.post(url, data)
-            setLoadig(false)
             if (res.data.message === 'success') {
-                storage.save({
-                    key: 'token',
-                    data: res.data.token
-                })
-                return navigation.push('home')
+                SecureStore.setItemAsync('token', res.data.token)
+                setAuth(res.data.token)
             }
         } catch (error) {
-            console.log(error)
+            console.log('error')
         }
+        setLoadig(false)
     }
 
 
