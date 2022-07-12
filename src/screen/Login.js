@@ -1,26 +1,54 @@
-import React, { useEffect, useState } from 'react'
-import { Dimensions, Button, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useState } from 'react'
+import { Dimensions, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useFonts, AlexBrush_400Regular } from '@expo-google-fonts/alex-brush'
-import Fetching from '../helper/Fetch';
+import axios from 'axios'
+import Storage from 'react-native-storage';
+import { AsyncStorage } from 'react-native'
+const storage = new Storage({
+    size: 1000,
+    defaultExpires: 1000 * 3600 * 24,
+    enableCache: true,
+    storageBackend: AsyncStorage
+})
 
 let go = 'https://img2.pngdownload.id/20180610/jeu/kisspng-google-logo-google-search-google-now-5b1dacc1ad0462.3234288415286714257087.jpg'
-let apiUrl = 'https://jsonplaceholder.typicode.com/photos'
+let url = 'http://192.168.100.13:8000/auth/login'
 
-export default function Login() {
-    let ScreenHeight = Dimensions.get("window").height;
-    let [fontsLoaded] = useFonts({ AlexBrush_400Regular });
-    let [data, setData] = useState({ username: '', password: '' })
-    let [result, setResult] = useState([])
+
+
+export default function Login({ navigation }) {
+    const ScreenHeight = Dimensions.get("window").height;
+    const [fontsLoaded] = useFonts({ AlexBrush_400Regular });
+    const [data, setData] = useState({ email: '', password: '' })
+    const [message, setMessage] = useState('')
     const [loading, setLoadig] = useState(false)
 
     async function Login() {
-        setLoadig(!loading)
-        setTimeout(() => {
+        if (!data.email || !data.password) setMessage('Plese fill data')
+        setLoadig(true)
+        try {
+            const res = await axios.post(url, data)
             setLoadig(false)
-            setData({ username: '', password: '' })
-        }, 4000)
-        console.log(data)
+            if (res.data.message === 'success') {
+                storage.save({
+                    key: 'token',
+                    data: res.data.token
+                })
+                return navigation.push('home')
+            }
+        } catch (error) {
+            console.log(error)
+        }
     }
+
+
+    if (message) {
+        setTimeout(() => {
+            setMessage('')
+        }, 2000)
+    }
+
+
     if (!fontsLoaded) {
         return <Text>Loading...</Text>;
     } else {
@@ -32,12 +60,16 @@ export default function Login() {
                         <Text style={style.title}>StoryLife</Text>
                         <Text style={style.title2}>BEST STORY - BEST VENDOR - BEST PRICE</Text>
                     </View>
+
+
                     {/* Form */}
+
                     <View style={style.form}>
+                        <Text style={style.message}>{message}</Text>
                         <Text style={style.form.title}>Login</Text>
                         <View style={style.form.input}>
                             <Text style={{ color: 'white', letterSpacing: 6 }}>USERNAME</Text>
-                            <TextInput value={data.username} onChangeText={(e) => setData({ ...data, username: e })} style={style.inputText} placeholder='username' />
+                            <TextInput value={data.email} onChangeText={(e) => setData({ ...data, email: e })} style={style.inputText} placeholder='username' />
                             <Text style={{ color: 'white', letterSpacing: 6 }}>PASSWORD</Text>
                             <TextInput value={data.password} secureTextEntry={true} onChangeText={(e) => setData({ ...data, password: e })} style={style.inputText} placeholder='password' />
                             <TouchableOpacity onPressOut={Login} style={style.btnLogin} >
@@ -124,7 +156,8 @@ const style = {
         borderRadius: 20,
         flex: 0.3,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        marginTop: 20
     },
     another: {
         flex: 0.1,
@@ -135,6 +168,9 @@ const style = {
         alignItems: 'center',
         margin: 5,
         borderRadius: 20,
-        overFlow: 'hidden'
+        overFlow: 'hidden',
+    },
+    message: {
+        color: 'red',
     }
 }

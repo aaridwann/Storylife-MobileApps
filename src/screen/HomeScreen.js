@@ -1,18 +1,19 @@
 import React, { useState } from 'react'
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text, Button, TextInput } from 'react-native'
+import Storage from 'react-native-storage';
 
 export default function HomeScreen({ navigation }) {
     const [name, setName] = useState('')
+  
+    storage.load({ key: 'token' })
+        .then(data => { console.log(data) })
+        .catch(err => console.log(err))
 
-    return (
+  
+  
+        return (
         <View style={style.container}>
-            <Text style={style.font}>
-                Home Screen
-            </Text>
-            <Button onPress={() => navigation.push('profile', { name: name, age: 28 })} title='Profile' />
-            <TextInput onChangeText={(e) => setName(e)} style={style.input} placeholder='Type something' />
+            <Text>Home</Text>
         </View>
     )
 }
